@@ -13,7 +13,7 @@ from Alertamento.models import Incidente
 
 # Configurações
 ROUTER_IP = 
-ROUTER_PORT = 31000  # Porta como inteiro
+ROUTER_PORT =  # Porta como inteiro
 ROUTER_USERNAME = 
 ROUTER_PASSWORD = 
 MIN_DROP = 4
