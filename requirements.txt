@@ -1,0 +1,43 @@
+#SentinelaApolo/requiriments.txt
+# Framework principal
+Django==4.2
+django-environ==0.9.0
+
+# Bibliotecas para análise e manipulação de dados
+#pandas==2.1.3
+#numpy==1.26.0
+
+# Suporte a autenticação e segurança
+django-allauth==0.56.0
+djangorestframework==3.14.0
+djangorestframework-simplejwt==5.2.2
+
+# Conexão com banco de dados PostgreSQL
+psycopg2-binary==2.9.6
+
+# Gerenciamento de variáveis de ambiente
+django-environ==0.9.0
+
+# Utilitários para trabalhar com SSH e tarefas de rede
+paramiko==2.11.0
+
+# Biblioteca para criação e manipulação de grafos
+networkx==2.8.7
+
+# Biblioteca para testes unitários e de integração
+pytest==7.1.2
+pytest-django==4.5.2
+
+#recaptcha do google
+google-cloud-recaptcha-enterprise==1.26.1
+
+#recaptcha django
+django-recaptcha==3.0.0
+
+chardet==5.2.0
+charset-normalizer==3.4.0
+gunicorn==23.0.0
+
+# Versão mais recente do requests (sobrescreve a de cima, se preferir)
+requests==2.32.3
+

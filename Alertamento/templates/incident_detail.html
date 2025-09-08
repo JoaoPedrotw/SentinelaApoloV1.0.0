@@ -1,0 +1,10 @@
+<!--D:/SentinelaApolo/Alertamento/templates/incident_detail.html-->
+{% extends "base.html" %}
+{% block content %}
+<h1>Incidente {{ incident.get_tipo_display }}</h1>
+<p><strong>Nível:</strong> {{ incident.nivel }}</p>
+<p><strong>Mensagem:</strong> {{ incident.mensagem }}</p>
+<p><strong>Detalhes:</strong> {{ incident.detalhes }}</p>
+<p><strong>Quando:</strong> {{ incident.timestamp }}</p>
+<a href="{% url 'alertamento:incident_list' %}">Voltar à lista</a>
+{% endblock %}

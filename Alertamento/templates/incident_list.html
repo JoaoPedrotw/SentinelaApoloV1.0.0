@@ -1,0 +1,17 @@
+<!--D:/SentinelaApolo/Alertamento/templates/incident_list.html-->
+{% extends "base.html" %}
+{% block content %}
+<h1>Incidentes</h1>
+<a href="{% url 'alertamento:incident_create' %}">Novo incidente</a>
+<ul>
+  {% for inc in incidents %}
+    <li>
+      <a href="{% url 'alertamento:incident_detail' inc.pk %}">
+        [{{ inc.nivel }}] {{ inc.tipo }} – {{ inc.timestamp }}
+      </a>
+    </li>
+  {% empty %}
+    <li>Nenhum incidente registrado.</li>
+  {% endfor %}
+</ul>
+{% endblock %}

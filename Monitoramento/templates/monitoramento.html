@@ -1,0 +1,345 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Monitoramento de Rede Óptica</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <style>
+    /* --------------------------------------------
+       Layout geral
+    -------------------------------------------- */
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #e0f2fe;
+      color: #0f172a;
+    }
+    /* Sidebar */
+    .sidebar {
+      width: 250px;
+      height: 100vh;
+      position: fixed;
+      background-color: #1e40af;
+      color: #f1f5f9;
+      padding-top: 1rem;
+      transition: width 0.3s ease;
+      z-index: 1000;
+    }
+    .sidebar.collapsed { width: 80px; }
+    .sidebar h2 {
+      font-size: 1.25rem;
+      text-align: center;
+      margin-bottom: 2rem;
+      color: #bfdbfe;
+      transition: opacity 0.3s ease;
+    }
+    .sidebar.collapsed h2 { opacity: 0; }
+    .sidebar a {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #e0f2fe;
+      text-decoration: none;
+      padding: 0.75rem 1rem;
+      margin-bottom: 0.5rem;
+      border-radius: 0.25rem;
+      white-space: nowrap;
+    }
+    .sidebar a:hover, .sidebar a.active {
+      background-color: #3b82f6;
+      color: white;
+    }
+    .sidebar.collapsed a span { display: none; }
+
+    .sidebar-footer {
+      position: absolute;
+      bottom: 1rem;
+      width: 100%;
+      text-align: center;
+      font-size: 0.75rem;
+      color: #bfdbfe;
+      opacity: 0.8;
+    }
+    .sidebar.collapsed .sidebar-footer small { display: none; }
+
+    /* Main content */
+    .main-content {
+      margin-left: 250px;
+      padding: 2rem;
+      transition: margin-left 0.3s ease;
+      min-height: 100vh;
+    }
+    .sidebar.collapsed + .main-content {
+      margin-left: 80px;
+    }
+
+    /* Tabs */
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Sections */
+    .log-section {
+      background-color: #dbeafe;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      margin-bottom: 1rem;
+      max-height: 60vh;
+      overflow-y: auto;
+    }
+    .log-section h2 { color: #1e3a8a; }
+
+    /* Tables */
+    table.table {
+      background-color: #f0f9ff;
+      color: #1e293b;
+    }
+    th {
+      background-color: #1d4ed8 !important;
+      color: #f8fafc;
+    }
+    td {
+      border-color: #cbd5e1;
+      white-space: nowrap;
+    }
+    td pre {
+      margin: 0;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    /* Toggle button */
+    #toggle-sidebar {
+      position: fixed;
+      top: 15px;
+      left: 15px;
+      z-index: 1100;
+      background-color: #3b82f6;
+      color: white;
+      border: none;
+      padding: 0.5rem 0.75rem;
+      border-radius: 0.25rem;
+    }
+    #toggle-sidebar:hover { background-color: #2563eb; }
+  </style>
+</head>
+<body>
+
+  <!-- Áudio de alarme (dispara só em quedas críticas novas) -->
+  <audio id="alarm-audio" src="{% static 'admin/sounds/alarme_sentinela.wav' %}" preload="auto"></audio>
+
+  <!-- Sidebar toggle -->
+  <button id="toggle-sidebar"><i class="fas fa-bars"></i></button>
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h2>🌐 Sentinela</h2>
+    <a href="#" class="tab-link active" data-tab="alerts-tab"><i class="fas fa-bell"></i><span>Avisos</span></a>
+    <a href="#" class="tab-link" data-tab="system-tab"><i class="fas fa-server"></i><span>Logs de Sistema</span></a>
+    <a href="#" class="tab-link" data-tab="details-tab"><i class="fas fa-list"></i><span>Detalhamento</span></a>
+    <a href="{% url 'logout' %}" class="logout-link"><i class="fas fa-sign-out-alt"></i><span>Sair</span></a>
+    <div class="sidebar-footer">
+      <small>Feito com ❤️ por JP</small><br>
+      <small>V. 1.000</small>
+    </div>
+  </div>
+
+  <!-- Main content -->
+  <div class="main-content">
+    <h1 class="mb-4">Monitoramento de Rede Óptica</h1>
+
+    <!-- ABA: Avisos -->
+    <div id="alerts-tab" class="tab-content active">
+      <div class="log-section">
+        <h2>Avisos de Monitoramento</h2>
+        <table class="table table-sm table-bordered">
+          <thead>
+            <tr>
+              <th style="width:120px">Timestamp</th>
+              <th>Tipo</th>
+              <th>Mensagem</th>
+            </tr>
+          </thead>
+          <tbody id="network-alert-container"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ABA: Logs de Sistema -->
+    <div id="system-tab" class="tab-content">
+      <div class="log-section">
+        <h2>Logs de Sistema</h2>
+        <table class="table table-sm table-bordered">
+          <thead>
+            <tr>
+              <th style="width:120px">Timestamp</th>
+              <th>Nível</th>
+              <th>Mensagem</th>
+            </tr>
+          </thead>
+          <tbody id="system-log-container"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ABA: Detalhamento -->
+    <div id="details-tab" class="tab-content">
+      <div class="log-section">
+        <h2>Detalhamento de Quedas</h2>
+        <table class="table table-sm table-bordered">
+          <thead>
+            <tr>
+              <th style="width:120px">Timestamp</th>
+              <th>OLT</th>
+              <th>SLOT</th>
+              <th>PON</th>
+              <th>CTO</th>
+              <th>Quedas</th>
+              <th>Usuários</th>
+            </tr>
+          </thead>
+          <tbody id="alert-details-container"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script>
+    // Sidebar toggle
+    document.getElementById('toggle-sidebar').addEventListener('click', () => {
+      document.querySelector('.sidebar').classList.toggle('collapsed');
+      document.querySelector('.main-content').classList.toggle('expanded');
+    });
+
+    // Tab navigation
+    document.querySelectorAll('.tab-link').forEach(link => {
+      link.addEventListener('click', e => {
+        e.preventDefault();
+        document.querySelectorAll('.tab-link').forEach(l => l.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        link.classList.add('active');
+        document.getElementById(link.dataset.tab).classList.add('active');
+      });
+    });
+
+    // Helpers for severity-based row styling
+    function styleBySeverity(tr, level) {
+      tr.classList.remove('table-info','table-warning','table-danger');
+      if (level === 'ERROR')      tr.classList.add('table-danger');
+      else if (level === 'WARNING') tr.classList.add('table-warning');
+      else                           tr.classList.add('table-info');
+    }
+
+    // Track last critical timestamp to only fire alarm once per new critical
+    let lastCritical = null;
+    const alarm = document.getElementById('alarm-audio');
+
+    async function fetchNetworkAlerts() {
+      try {
+        const res = await fetch('/monitoramento/network-alerts/');
+        if (!res.ok) throw new Error(res.status);
+        const alerts = await res.json();
+        const tbody = document.getElementById('network-alert-container');
+        tbody.innerHTML = '';
+
+        alerts.forEach(a => {
+          const tr = document.createElement('tr');
+          styleBySeverity(tr, a.problem_type);
+          tr.innerHTML = `
+            <td>${a.timestamp}</td>
+            <td>${a.problem_type}</td>
+            <td><pre>${a.message}</pre></td>
+          `;
+          tbody.appendChild(tr);
+
+          // if it's a new critical “Queda crítica” fire alarm
+          if (a.problem_type === 'WARNING' && a.message.startsWith('Queda crítica')) {
+            if (!lastCritical || a.timestamp > lastCritical) {
+              lastCritical = a.timestamp;
+              alarm.play().catch(()=>{});  // ignore play() promise rejection
+            }
+          }
+        });
+      } catch (err) {
+        console.error('Erro ao carregar Avisos:', err);
+      }
+    }
+
+    async function fetchSystemLogs() {
+      try {
+        const res = await fetch('/monitoramento/system-logs/');
+        if (!res.ok) throw new Error(res.status);
+        const logs = await res.json();
+        const tbody = document.getElementById('system-log-container');
+        tbody.innerHTML = '';
+        logs.forEach(l => {
+          const tr = document.createElement('tr');
+          styleBySeverity(tr, l.level);
+          tr.innerHTML = `
+            <td>${l.timestamp}</td>
+            <td>${l.level}</td>
+            <td>${l.message}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (err) {
+        console.error('Erro ao carregar Logs de Sistema:', err);
+      }
+    }
+
+    async function fetchAlertDetails() {
+      try {
+        const res = await fetch('/monitoramento/network-alerts/');
+        if (!res.ok) throw new Error(res.status);
+        const alerts = await res.json();
+        const tbody = document.getElementById('alert-details-container');
+        tbody.innerHTML = '';
+        alerts.forEach(a => {
+          const h = a.hierarchy_data || {};
+          for (const olt in h) {
+            for (const slot in h[olt]) {
+              for (const pon in h[olt][slot]) {
+                for (const cto in h[olt][slot][pon]) {
+                  const users = h[olt][slot][pon][cto];
+                  const tr = document.createElement('tr');
+                  tr.innerHTML = `
+                    <td>${a.timestamp}</td>
+                    <td>${olt}</td>
+                    <td>${slot}</td>
+                    <td>${pon}</td>
+                    <td>${cto}</td>
+                    <td>${users.length}</td>
+                    <td>${users.join(', ')}</td>
+                  `;
+                  tbody.appendChild(tr);
+                }
+              }
+            }
+          }
+        });
+      } catch (err) {
+        console.error('Erro ao carregar Detalhamento:', err);
+      }
+    }
+
+    // Periodic refresh
+    setInterval(() => {
+      fetchNetworkAlerts();
+      fetchSystemLogs();
+      fetchAlertDetails();
+    }, 5000);
+
+    // Initial load
+    document.addEventListener('DOMContentLoaded', () => {
+      fetchNetworkAlerts();
+      fetchSystemLogs();
+      fetchAlertDetails();
+    });
+  </script>
+</body>
+</html>
