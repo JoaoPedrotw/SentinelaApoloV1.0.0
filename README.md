@@ -9,7 +9,7 @@ alertas hierárquicos e registros de incidentes;
 recuperações de assinantes com filtro por eventos críticos;
 
 painel web responsivo com abas (Avisos, Logs de Sistema, Detalhamento) e sons para eventos críticos.
-
+(O APP ALERTAMENTO NÃO TEM FUNCIONALIADES NA VERSÃO ATUAL)
 
 Usuário ──> NGINX (frontend-proxy)
               │
