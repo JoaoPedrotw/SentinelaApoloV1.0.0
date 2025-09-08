@@ -25,12 +25,12 @@ environ.Env.read_env(os.path.join(os.path.dirname(os.path.dirname(__file__)), '.
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-dj-v-r#j58__wj726-7sl&5d#ff@=_uro*j#t2%+xdml8f80gt'
+SECRET_KEY = ''
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['monitorapolo.twister.com.br','177.85.164.30', 'localhost', '127.0.0.1','0.0.0.0']
+ALLOWED_HOSTS = [ 'localhost', '127.0.0.1','0.0.0.0']
 
 
 # Application definition
@@ -65,7 +65,7 @@ MIDDLEWARE = [
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    'http://177.85.164.30:8001',
+    'http://SeuIP:8001',
     'http://localhost:8001',  # Se estiver testando localmente
 ]
 
